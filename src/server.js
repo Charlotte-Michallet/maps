@@ -1,7 +1,7 @@
 // Entrée du processus : charge la configuration, démarre HTTP et gère l'arrêt.
 import { createApp } from './app.js';
 import { loadConfig } from './config.js';
-import { connectDB, pool } from './config.js';
+import { connectDB, pool } from './db/connection.js';
 
 const config = loadConfig();
 const app = createApp(config);
