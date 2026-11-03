@@ -7,3 +7,4 @@ work/
 outputs/
 npm-debug.log*
 
+.vscode/
