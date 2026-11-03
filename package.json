@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env src/server.js",
     "dev": "node --env-file-if-exists=.env --watch src/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "db:init": "docker exec -i sqlserver sh -c '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -C -b -i /dev/stdin' < src/db/init.sql"
   },
   "engines": {
     "node": ">=22"
