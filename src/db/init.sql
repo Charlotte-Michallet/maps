@@ -12,7 +12,11 @@ BEGIN
         latitude DECIMAL(9,6) NOT NULL,
         longitude DECIMAL(9,6) NOT NULL,
         label VARCHAR(64) not null,
-        coordinates VARCHAR(255) NOT NULL UNIQUE      
+        coordinates VARCHAR(255) NOT NULL UNIQUE,      
+        north_bound DECIMAL(9,6) NOT NULL,
+        south_bound DECIMAL(9,6) NOT NULL,
+        east_bound DECIMAL(9,6) NOT NULL,
+        west_bound DECIMAL(9,6) NOT NULL
     );
 END
 GO
