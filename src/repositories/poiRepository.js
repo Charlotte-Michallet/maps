@@ -25,16 +25,16 @@ export function createPoiRepository() {
 
                 const searchKey = await geographyKey(latitude, longitude);
 
-                const request = new pool.Request();
+                const request = pool.request();
 
-                request.input("lat", strictEqual.Decimal(9, 6), latitude);
-                request.input("long", strictEqual.Decimal(9, 6), longitude);
-                request.input("label", strictEqual.Varchar(64), label);
-                request.input("key", strictEqual.Varchar(255), searchKey);
-                request.input("north", strictEqual.Varchar(255), north);
-                request.input("east", strictEqual.Varchar(255), east);
-                request.input("south", strictEqual.Varchar(255), south);
-                request.input("west", strictEqual.Varchar(255), west);
+                request.input("lat", sql.Decimal(9, 6), latitude);
+                request.input("long", sql.Decimal(9, 6), longitude);
+                request.input("label", sql.Varchar(64), label);
+                request.input("key", sql.Varchar(255), searchKey);
+                request.input("north", sql.Varchar(255), north);
+                request.input("east", sql.Varchar(255), east);
+                request.input("south", sql.Varchar(255), south);
+                request.input("west", sql.Varchar(255), west);
 
                 const query = `INSERT INTO Searches (latitude, longitude, label, coordinates, north_bound, south_bound, south_bound, east_bound, west_bound) VALUES (@lat, @long, @label, @key, @north, @east, @south, @west)`;
 
@@ -42,6 +42,54 @@ export function createPoiRepository() {
                 console.log(
                     `Recherche enregistrée avec succès! (Clé : ${searchKey})`,
                 );
+
+                if (pois && pois.length > 0) {
+                    for (let poi of pois) {
+                        const poiRequest = pool.request();
+                        poiRequest.input("id", sql.Varchar(255), searchKey);
+                        poiRequest.input(
+                            "osm_type",
+                            sql.Varchar(5),
+                            poi.osmType,
+                        );
+                        poiRequest.input("osm_id", sql.INT, poi.osmId);
+                        poiRequest.input(
+                            "category",
+                            sql.Varchar(64),
+                            poi.catergory,
+                        );
+                        poiRequest.input(
+                            "category_label",
+                            sql.Varchar(64),
+                            poi.catergoryLabel,
+                        );
+                        poiRequest.input(
+                            "lat",
+                            sql.Decimal(9, 6),
+                            poi.latitude,
+                        );
+                        poiRequest.input(
+                            "long",
+                            sql.Decimal(9, 6),
+                            poi.longitude,
+                        );
+                        poiRequest.input(
+                            "source",
+                            sql.Varchar(255),
+                            poi.source || null,
+                        );
+                        poiRequest.input(
+                            "id_cluster",
+                            sql.Varchar(255),
+                            poi.idCluster || null,
+                        );
+
+                        const querypoi = `INSERT INTO Pois (id, osm_type, osm_id, category, category_label, latitude, longitude, source, id_cluster) VALUES (@id, @osm_type, @osm_id, @category, @category_label, @lat, @long, @source, @id_cluster)`;
+
+                        await poiRequest.query(querypoi);
+                        console.log(`Poi enregistrée avec succès!)`);
+                    }
+                }
             } catch (error) {
                 if (error.number === 2627 || error.number === 2601) {
                     console.log(
