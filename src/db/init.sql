@@ -36,6 +36,20 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('Clusters_Searches', 'U') IS NULL
+BEGIN
+    CREATE TABLE Clusters_Searches(
+        id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        id_cluster VARCHAR(255) NOT NULL,
+        id_search INT NOT NULL,
+        CONSTRAINT FK_Clusters_Searches_Clusters_id
+            FOREIGN KEY (id_cluster) REFERENCES Clusters(id),
+        CONSTRAINT FK_Clusters_Searches_Searches_id
+            FOREIGN KEY (id_search) REFERENCES Searches(id)
+    )
+END
+GO
+
 IF OBJECT_ID('Pois', 'U') IS NULL
 BEGIN
     CREATE TABLE Pois(
