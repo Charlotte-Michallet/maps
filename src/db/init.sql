@@ -41,7 +41,7 @@ BEGIN
         latitude DECIMAL(9,6) NOT NULL,
         longitude DECIMAL(9,6) NOT NULL,
         source VARCHAR(64),
-        id_cluster VARCHAR(255) NOT NULL,
+        id_cluster VARCHAR(255),
         CONSTRAINT FK_Pois_Clusters_id
             FOREIGN KEY (id_cluster) REFERENCES Clusters(id),
         CONSTRAINT UQ_Pois_OsmType_OsmId
