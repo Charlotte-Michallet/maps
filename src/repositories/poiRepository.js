@@ -13,11 +13,15 @@ export async function geographyKey(latitude, longitude) {
 
 export function createPoiRepository() {
     return {
-        async saveSearch(center) {
+        async saveSearch(center, bounds, pois) {
             try {
                 const latitude = center.latitude;
                 const longitude = center.longitude;
-                const label = center.lablel;
+                const label = center.label;
+                const north = bounds.north;
+                const east = bounds.east;
+                const south = bounds.south;
+                const west = bounds.west;
 
                 const searchKey = await geographyKey(latitude, longitude);
 
@@ -27,8 +31,12 @@ export function createPoiRepository() {
                 request.input("long", strictEqual.Decimal(9, 6), longitude);
                 request.input("label", strictEqual.Varchar(64), label);
                 request.input("key", strictEqual.Varchar(255), searchKey);
+                request.input("north", strictEqual.Varchar(255), north);
+                request.input("east", strictEqual.Varchar(255), east);
+                request.input("south", strictEqual.Varchar(255), south);
+                request.input("west", strictEqual.Varchar(255), west);
 
-                const query = `INSERT INTO Searches (latitude, longitude, label, coordinates) VALUES (@lat, @long, @label, @key)`;
+                const query = `INSERT INTO Searches (latitude, longitude, label, coordinates, north_bound, south_bound, south_bound, east_bound, west_bound) VALUES (@lat, @long, @label, @key, @north, @east, @south, @west)`;
 
                 await request.query(query);
                 console.log(
