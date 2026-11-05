@@ -1,14 +1,16 @@
 import { log } from "node:console";
 import { connectDB, pool } from "../db/connection.js";
+import sql from "mssql";
+import AppError from "../errors.js";
 
 export async function geographyKey(latitude, longitude) {
-    let geoKey = "";
+  let geoKey = "";
 
-    const latNorm = Number(latitude).toFixed(5);
-    const longNorm = Number(longitude).toFixed(5);
+  const latNorm = Number(latitude).toFixed(5);
+  const longNorm = Number(longitude).toFixed(5);
 
-    geoKey = latNorm + "_" + longNorm;
-    return geoKey;
+  geoKey = latNorm + "_" + longNorm;
+  return geoKey;
 }
 
 export function createPoiRepository() {
@@ -23,7 +25,7 @@ export function createPoiRepository() {
                 const south = bounds.south;
                 const west = bounds.west;
 
-                const searchKey = await geographyKey(latitude, longitude);
+        const searchKey = await geographyKey(latitude, longitude);
 
                 const request = pool.request();
 
