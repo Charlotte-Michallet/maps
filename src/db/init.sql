@@ -24,7 +24,10 @@ BEGIN
         latitude DECIMAL(9,6) NOT NULL,
         longitude DECIMAL(9,6) NOT NULL,
         category_count INT NOT NULL,
-        count INT NOT NULL
+        count INT NOT NULL,
+        id_search INT NOT NULL,
+        CONSTRAINT FK_Clusters_Searches_id
+            FOREIGN KEY (id_search) REFERENCES Searches(id)
     )
 END
 GO
