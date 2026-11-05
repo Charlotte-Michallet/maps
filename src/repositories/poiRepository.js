@@ -48,7 +48,7 @@ export function createPoiRepository() {
             }
         },
         async findSearch(center, bounds, pois) {},
-        async findCoveredArea(bounds) {},
+        async findClusters(searchId) {},
         async findPois(bounds) {},
         async saveClusters(searchId, clusters) {},
     };
