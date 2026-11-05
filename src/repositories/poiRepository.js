@@ -1,18 +1,20 @@
 import { log } from "node:console";
-import { connectDB, pool } from "../src/db/connection.js";
+import { connectDB, pool } from "../db/connection.js";
 
 export async function geographyKey(latitude, longitude) {
-    let geoKey = "";
+  let geoKey = "";
 
-    const latNorm = Number(latitude).toFixed(5);
-    const longNorm = Number(longitude).toFixed(5);
+  const latNorm = Number(latitude).toFixed(5);
+  const longNorm = Number(longitude).toFixed(5);
 
-    geoKey = latNorm + "_" + longNorm;
-    return geoKey;
+  geoKey = latNorm + "_" + longNorm;
+  return geoKey;
 }
 
-export async function saveSearch(center) {
-    try {
+export function createPoiRepository() {
+  return {
+    async saveSearch(center) {
+      try {
         const latitude = center.latitude;
         const longitude = center.longitude;
         const label = center.lablel;
@@ -30,17 +32,17 @@ export async function saveSearch(center) {
 
         await request.query(query);
         console.log(`Recherche enregistrée avec succès! (Clé : ${searchKey})`);
-    } catch (error) {
+      } catch (error) {
         if (err.number === 2627 || err.number === 2601) {
-            console.log("Cette zone géographique existe déjà dans le dépôt.");
+          console.log("Cette zone géographique existe déjà dans le dépôt.");
         } else {
-            console.error("Erreur lors de l'enregistrement en base :", err);
+          console.error("Erreur lors de l'enregistrement en base :", err);
         }
-    }
+      }
+    },
+    async findSearch(center, bounds, pois) {},
+    async findCoveredArea(bounds){},
+    async findPois(bounds){},
+    async saveClusters(searchId, clusters){}
+  };
 }
-
-export async function findSearch(center, bounds, pois) {}
-
-// repository.findCoveredArea(bounds);
-// repository.findPois(bounds);
-// repository.saveClusters(searchId, clusters);
