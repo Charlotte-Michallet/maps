@@ -1,7 +1,7 @@
 // Orchestre une recherche sans dépendre de l'origine concrète des POI.
-import { performance } from 'node:perf_hooks';
-import { calculateBoundingBox } from './bounds.js';
-import { groupPois } from './clusters.js';
+import { performance } from "node:perf_hooks";
+import { calculateBoundingBox } from "./bounds.js";
+import { groupPois } from "./clusters.js";
 
 export function createSearchService({ poiProvider }) {
   return {
@@ -12,7 +12,11 @@ export function createSearchService({ poiProvider }) {
       const pois = await poiProvider.fetchPois({ center, bounds, signal });
 
       // TODO STUDENTS: comparer ce calcul JavaScript à une agrégation SQL ROUND/GROUP BY.
-      const clusters = groupPois(pois);
+      const clusters = poiProvider.fetchClusters
+        ? await poiProvider.fetchClusters({ center, bounds, signal })
+        : groupPois(pois);
+
+      // const clusters = groupPois(pois)
 
       return {
         center,
@@ -25,4 +29,3 @@ export function createSearchService({ poiProvider }) {
     },
   };
 }
-
