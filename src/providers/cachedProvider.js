@@ -9,6 +9,7 @@ export function createCachedProvider({ osmProvider, repository }) {
     },
     async fetchClusters({ center }) {
       const search = await repository.findSearch(center);
+      if (!search) return;
       return repository.findClusters(search.id);
     },
   };
