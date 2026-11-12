@@ -31,21 +31,23 @@ export function createPoiRepository() {
                 request.input("long", sql.Decimal(9, 6), longitude);
                 request.input("label", sql.Varchar(64), label);
                 request.input("key", sql.Varchar(255), searchKey);
-                request.input("north", sql.Varchar(255), north);
-                request.input("east", sql.Varchar(255), east);
-                request.input("south", sql.Varchar(255), south);
-                request.input("west", sql.Varchar(255), west);
+                request.input("north", sql.Decimal(9, 6), north);
+                request.input("east", sql.Decimal(9, 6), east);
+                request.input("south", sql.Decimal(9, 6), south);
+                request.input("west", sql.Decimal(9, 6), west);
 
-                const query = `INSERT INTO Searches (latitude, longitude, label, coordinates, north_bound, south_bound, south_bound, east_bound, west_bound) VALUES (@lat, @long, @label, @key, @north, @east, @south, @west)`;
+                const searchQuery = `INSERT INTO Searches (latitude, longitude, label, coordinates, north_bound, south_bound, east_bound, west_bound) VALUES (@lat, @long, @label, @key, @north, @east, @south, @west) SELECT SCOPE_IDENTITY() AS searchId`;
 
-                await request.query(query);
+                const resultSearch = await request.query(searchQuery);
+                const searchId = resultSearch.recordset[0].searchId;
                 console.log(
-                    `Recherche enregistrée avec succès! (Clé : ${searchKey})`,
+                    `Recherche enregistrée avec succès! (ID : ${searchId}, Clé : ${searchKey})`,
                 );
 
                 if (pois && pois.length > 0) {
                     for (let poi of pois) {
                         const poiRequest = pool.request();
+
                         poiRequest.input("id", sql.Varchar(255), searchKey);
                         poiRequest.input(
                             "osm_type",
@@ -56,12 +58,12 @@ export function createPoiRepository() {
                         poiRequest.input(
                             "category",
                             sql.Varchar(64),
-                            poi.catergory,
+                            poi.category,
                         );
                         poiRequest.input(
                             "category_label",
                             sql.Varchar(64),
-                            poi.catergoryLabel,
+                            poi.categoryLabel,
                         );
                         poiRequest.input(
                             "lat",
@@ -75,7 +77,7 @@ export function createPoiRepository() {
                         );
                         poiRequest.input(
                             "source",
-                            sql.Varchar(255),
+                            sql.Varchar(64),
                             poi.source || null,
                         );
                         poiRequest.input(
@@ -84,11 +86,31 @@ export function createPoiRepository() {
                             poi.idCluster || null,
                         );
 
-                        const querypoi = `INSERT INTO Pois (id, osm_type, osm_id, category, category_label, latitude, longitude, source, id_cluster) VALUES (@id, @osm_type, @osm_id, @category, @category_label, @lat, @long, @source, @id_cluster)`;
+                        const querypoi = `IF NOT EXISTS (SELECT 1 FROM POIS WHERE id = @id) BEGIN INSERT INTO Pois (id, osm_type, osm_id, category, category_label, latitude, longitude, source, id_cluster) VALUES (@id, @osm_type, @osm_id, @category, @category_label, @lat, @long, @source, @id_cluster) END`;
 
                         await poiRequest.query(querypoi);
                         console.log(`Poi enregistrée avec succès!)`);
+                        const poiKey = `${poi.osmType}_${poi.osmId}`;
+
+                        const jonctionRequest = pool.request();
+                        jonctionRequest.input(
+                            "id_poi",
+                            sql.Varchar(255),
+                            poiKey,
+                        );
+                        jonctionRequest.input("id_search", sql.INT, searchId);
+
+                        const queryJonction = `
+                        IF NOT EXISTS (SELECT 1 FROM Pois_Searches WHERE id_poi = @id_poi AND id_search = @id_search)
+                        BEGIN
+                            INSERT INTO Pois_Searches (id_poi, id_search) VALUES (@id_poi, @id_search)
+                        END`;
+
+                        await jonctionRequest.query(queryJonction);
                     }
+                    console.log(
+                        `${pois.length} POIs et liaisons enregistrés avec succès !`,
+                    );
                 }
             } catch (error) {
                 if (error.number === 2627 || error.number === 2601) {
