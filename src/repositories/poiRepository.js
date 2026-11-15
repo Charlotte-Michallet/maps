@@ -17,9 +17,10 @@ export function createPoiRepository() {
     return {
         async saveSearch(center, bounds, pois) {
             try {
+                await connectDB();
                 const latitude = center.latitude;
                 const longitude = center.longitude;
-                const label = center.label;
+                const label = center.label || "Recherche GPS";
                 const north = bounds.north;
                 const east = bounds.east;
                 const south = bounds.south;
@@ -31,8 +32,8 @@ export function createPoiRepository() {
 
                 request.input("lat", sql.Decimal(9, 6), latitude);
                 request.input("long", sql.Decimal(9, 6), longitude);
-                request.input("label", sql.Varchar(64), label);
-                request.input("key", sql.Varchar(255), searchKey);
+                request.input("label", sql.VarChar(64), label);
+                request.input("key", sql.VarChar(255), searchKey);
                 request.input("north", sql.Decimal(9, 6), north);
                 request.input("east", sql.Decimal(9, 6), east);
                 request.input("south", sql.Decimal(9, 6), south);
@@ -49,22 +50,23 @@ export function createPoiRepository() {
                 if (pois && pois.length > 0) {
                     for (let poi of pois) {
                         const poiRequest = pool.request();
+                        const poiKey = `${poi.osmType}/${poi.osmId}`;
 
-                        poiRequest.input("id", sql.Varchar(255), searchKey);
+                        poiRequest.input("id", sql.VarChar(255), poiKey);
                         poiRequest.input(
                             "osm_type",
-                            sql.Varchar(5),
+                            sql.VarChar(5),
                             poi.osmType,
                         );
-                        poiRequest.input("osm_id", sql.INT, poi.osmId);
+                        poiRequest.input("osm_id", sql.Int, poi.osmId);
                         poiRequest.input(
                             "category",
-                            sql.Varchar(64),
+                            sql.VarChar(64),
                             poi.category,
                         );
                         poiRequest.input(
                             "category_label",
-                            sql.Varchar(64),
+                            sql.VarChar(64),
                             poi.categoryLabel,
                         );
                         poiRequest.input(
@@ -79,12 +81,12 @@ export function createPoiRepository() {
                         );
                         poiRequest.input(
                             "source",
-                            sql.Varchar(64),
+                            sql.VarChar(64),
                             poi.source || null,
                         );
                         poiRequest.input(
                             "id_cluster",
-                            sql.Varchar(255),
+                            sql.VarChar(255),
                             poi.idCluster || null,
                         );
 
@@ -92,15 +94,14 @@ export function createPoiRepository() {
 
                         await poiRequest.query(querypoi);
                         console.log(`Poi enregistrée avec succès!)`);
-                        const poiKey = `${poi.osmType}_${poi.osmId}`;
 
                         const jonctionRequest = pool.request();
                         jonctionRequest.input(
                             "id_poi",
-                            sql.Varchar(255),
+                            sql.VarChar(255),
                             poiKey,
                         );
-                        jonctionRequest.input("id_search", sql.INT, searchId);
+                        jonctionRequest.input("id_search", sql.Int, searchId);
 
                         const queryJonction = `
                         IF NOT EXISTS (SELECT 1 FROM Pois_Searches WHERE id_poi = @id_poi AND id_search = @id_search)
@@ -114,6 +115,7 @@ export function createPoiRepository() {
                         `${pois.length} POIs et liaisons enregistrés avec succès !`,
                     );
                 }
+                return searchId;
             } catch (error) {
                 if (error.number === 2627 || error.number === 2601) {
                     console.log(
