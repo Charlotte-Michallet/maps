@@ -17,7 +17,6 @@ export function createPoiRepository() {
     return {
         async saveSearch(center, bounds, pois) {
             try {
-                await connectDB();
                 const latitude = center.latitude;
                 const longitude = center.longitude;
                 const label = center.label || "Recherche GPS";
@@ -115,7 +114,6 @@ export function createPoiRepository() {
                         `${pois.length} POIs et liaisons enregistrés avec succès !`,
                     );
                 }
-                return searchId;
             } catch (error) {
                 if (error.number === 2627 || error.number === 2601) {
                     console.log(
@@ -127,6 +125,19 @@ export function createPoiRepository() {
                         error,
                     );
                 }
+            }
+        },
+        async countPois() {
+            try {
+                const request = pool.request();
+                const result = await request.query(
+                    "SELECT COUNT(*) AS total FROM Pois",
+                );
+
+                return result.recordset[0].total;
+            } catch (error) {
+                console.error("Erreur lors du comptage des POIs :", error);
+                throw error;
             }
         },
         async findSearch(center, bounds, pois) {},

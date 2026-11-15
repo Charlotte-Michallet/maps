@@ -55,7 +55,11 @@ async function runTestScript() {
 
         console.log(`Succès ! Recherche enregistrée avec l'ID : ${searchId}`);
 
-        // Test optionnel du doublon pour valider la contrainte d'unicité sur la clé géographique
+        console.log("Exécution de countPois via le repository...");
+        const count = await poiRepo.countPois();
+        console.log("POI enregistrés :", count);
+
+        // Test optionnel du doublon pour valider la contrainte d'unicité
         console.log(
             "Tentative de réinsertion de la même recherche (test d'unicité)...",
         );
