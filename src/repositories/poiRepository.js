@@ -15,8 +15,11 @@ export async function geographyKey(latitude, longitude) {
 
 export function createPoiRepository() {
     return {
-        async saveSearch(center, bounds, pois) {
+        async saveSearch({ center, bounds, pois }) {
+            const transaction = new sql.Transaction(pool);
+
             try {
+                await transaction.begin();
                 const latitude = center.latitude;
                 const longitude = center.longitude;
                 const label = center.label || "Recherche GPS";
@@ -27,7 +30,8 @@ export function createPoiRepository() {
 
                 const searchKey = await geographyKey(latitude, longitude);
 
-                const request = pool.request();
+                // const request = pool.request();
+                const request = new sql.Request(transaction);
 
                 request.input("lat", sql.Decimal(9, 6), latitude);
                 request.input("long", sql.Decimal(9, 6), longitude);
@@ -48,7 +52,7 @@ export function createPoiRepository() {
 
                 if (pois && pois.length > 0) {
                     for (let poi of pois) {
-                        const poiRequest = pool.request();
+                        const poiRequest = new sql.Request(transaction);
                         const poiKey = `${poi.osmType}/${poi.osmId}`;
 
                         poiRequest.input("id", sql.VarChar(255), poiKey);
@@ -94,7 +98,7 @@ export function createPoiRepository() {
                         await poiRequest.query(querypoi);
                         console.log(`Poi enregistrée avec succès!)`);
 
-                        const jonctionRequest = pool.request();
+                        const jonctionRequest = new sql.Request(transaction);
                         jonctionRequest.input(
                             "id_poi",
                             sql.VarChar(255),
@@ -114,7 +118,14 @@ export function createPoiRepository() {
                         `${pois.length} POIs et liaisons enregistrés avec succès !`,
                     );
                 }
+
+                await transaction.commit();
+                return searchId;
             } catch (error) {
+                try {
+                    await transaction.rollback();
+                } catch (rbErr) {}
+
                 if (error.number === 2627 || error.number === 2601) {
                     console.log(
                         "Cette zone géographique existe déjà dans le dépôt.",

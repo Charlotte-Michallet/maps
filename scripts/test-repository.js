@@ -47,29 +47,19 @@ async function runTestScript() {
 
         console.log("Exécution de saveSearch via le repository...");
 
-        const searchId = await poiRepo.saveSearch(
-            testSearch.center,
-            testSearch.bounds,
-            testSearch.pois,
-        );
-
-        console.log(`Succès ! Recherche enregistrée avec l'ID : ${searchId}`);
+        await poiRepo.saveSearch(testSearch);
+        console.log("Recherche enregistrée");
 
         console.log("Exécution de countPois via le repository...");
         const count = await poiRepo.countPois();
         console.log("POI enregistrés :", count);
 
-        // Test optionnel du doublon pour valider la contrainte d'unicité
         console.log(
             "Tentative de réinsertion de la même recherche (test d'unicité)...",
         );
 
         try {
-            await poiRepo.saveSearch(
-                testSearch.center,
-                testSearch.bounds,
-                testSearch.pois,
-            );
+            await poiRepo.saveSearch(testSearch);
         } catch (error) {
             if (error.number === 2627 || error.number === 2601) {
                 console.log(
