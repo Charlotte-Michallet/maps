@@ -60,22 +60,15 @@ async function runTestScript() {
         console.log("POI retrouvés :", pois);
 
         console.log(
-            "Tentative de réinsertion de la même recherche (test d'unicité)...",
+            "Tentative de réinsertion de la même recherche (test doublon)...",
         );
+        await poiRepo.saveSearch(testSearch);
 
-        try {
-            await poiRepo.saveSearch(testSearch);
-        } catch (error) {
-            if (error.number === 2627 || error.number === 2601) {
-                console.log(
-                    "SUCCES : Le doublon a bien été intercepté par le SGBD (Erreur SQL " +
-                        error.number +
-                        ")",
-                );
-            } else {
-                throw error;
-            }
-        }
+        const countAfterDuplicate = await poiRepo.countPois();
+        console.log("POI enregistrés après doublon :", countAfterDuplicate);
+
+        const poisAfterDuplicate = await poiRepo.findPois(idToTest);
+        console.log("POI retrouvés après doublon :", poisAfterDuplicate.length);
     } catch (error) {
         console.error("Erreur dans le script de test :", error);
     } finally {
