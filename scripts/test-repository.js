@@ -47,12 +47,17 @@ async function runTestScript() {
 
         console.log("Exécution de saveSearch via le repository...");
 
-        await poiRepo.saveSearch(testSearch);
-        console.log("Recherche enregistrée");
+        let searchId = await poiRepo.saveSearch(testSearch);
+        console.log("Recherche enregistrée (ID :", searchId, ")");
 
         console.log("Exécution de countPois via le repository...");
         const count = await poiRepo.countPois();
         console.log("POI enregistrés :", count);
+
+        console.log("Exécution de findPois via le repository...");
+        const idToTest = searchId ?? 5;
+        const pois = await poiRepo.findPois(idToTest);
+        console.log("POI retrouvés :", pois);
 
         console.log(
             "Tentative de réinsertion de la même recherche (test d'unicité)...",

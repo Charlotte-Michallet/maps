@@ -153,7 +153,28 @@ export function createPoiRepository() {
         },
         async findSearch(center, bounds, pois) {},
         async findClusters(searchId) {},
-        async findPois(bounds) {},
+
+        async findPois(searchId) {
+            try {
+                const request = pool.request();
+                request.input("searchId", sql.Int, searchId);
+
+                const query = `SELECT p.id, p.osm_id, p.osm_type, p.category, p.category_label, p.latitude, p.longitude, p.source, p.id_cluster 
+                    FROM Pois p
+                    JOIN Pois_Searches ps ON p.id = ps.id_poi
+                    WHERE ps.id_search = @searchId`;
+
+                const result = await request.query(query);
+
+                return result.recordset;
+            } catch (error) {
+                console.error(
+                    "Erreur lors de la récupération des POIs :",
+                    error,
+                );
+                throw error;
+            }
+        },
         async saveClusters(searchId, clusters) {},
     };
 }
